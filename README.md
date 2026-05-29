@@ -229,9 +229,6 @@ for step, m in hm.items():
     print(f'step {step:2d}  MAE={m["MAE"]:.4f}  RMSE={m["RMSE"]:.4f}  MAPE={m["MAPE"]:.2f}%')
 ```
 
----
-
-
 ## Python API
 
 ```python
@@ -267,15 +264,27 @@ print(metrics)   # {'MAE': ..., 'RMSE': ..., 'MAPE': ...}
 
 ---
 
-## Metrics
+## Evaluation
 
-All metrics are computed with `null_val=0.0` masking (timesteps where the ground truth is zero are excluded). Evaluation uses feature index 0, matching standard traffic-forecasting conventions.
+### Datasets
 
-| Metric | Formula |
-|---|---|
-| MAE | mean \|ŷ − y\| over valid entries |
-| RMSE | √(mean (ŷ − y)²) over valid entries |
-| MAPE | mean \|ŷ − y\| / \|y\| × 100 over valid entries |
+MAST-Net is evaluated on four traffic datasets, including a newly collected large-scale dataset from a Chinese ring road. All datasets use a **6:2:2 train/val/test split** and data is normalised to **[-1, 1]** via min-max scaling (`--normalize minmax`).
+
+### Metrics
+
+Performance is measured by three standard metrics over all L samples:
+
+$$\text{MAE} = \frac{1}{L}\sum_{i=1}^{L}\left\| X^i - \hat{X}^i \right\|$$
+
+$$\text{RMSE} = \sqrt{\frac{1}{L}\sum_{i=1}^{L}\left( X^i - \hat{X}^i \right)^2}$$
+
+$$\text{MAPE} = \frac{1}{L}\sum_{i=1}^{L}\frac{\left\| X^i - \hat{X}^i \right\|}{X^i}$$
+
+where $X^i$ is the ground truth for sample $i$, $\hat{X}^i$ the predicted value, and $L$ the total number of samples.
+
+All three metrics are computed with `null_val=0.0` masking — timesteps where the ground truth is zero are excluded from the average. Evaluation uses feature index 0, matching standard traffic-forecasting conventions.
+
+> **Note:** the 6:2:2 split differs from the METR-LA/PEMS-BAY convention (7:1:2). Pass `--normalize minmax` and ensure `train_ratio=0.6`, `val_ratio=0.2` in `config.py` (already set for ATP-CN, ATP-PALL, ATP-TALL, EXPY-TKY) or via `--dataset` auto-resolution.
 
 ---
 
